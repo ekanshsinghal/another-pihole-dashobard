@@ -188,11 +188,38 @@ function App() {
 					</Sider>
 
 					<Content style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 50px)' }}>
-						<Outlet />
-						<Layout.Footer style={{ display: 'flex', justifyContent: 'center', background: 'var(--ant-color-bg-container)' }}>
-							Core: {versionInfo?.core.local.version}
-							FTL: {versionInfo?.ftl.local.version}
-							Docker: {versionInfo?.docker?.local}
+						<div style={{ minHeight: 'calc(100vh - 100px)' }}>
+							<Outlet />
+						</div>
+						<Layout.Footer
+							style={{
+								display: 'flex',
+								justifyContent: 'center',
+								background: 'var(--ant-color-bg-container)',
+								gap: 12,
+								height: 50,
+								padding: 0,
+								alignItems: 'center',
+							}}
+						>
+							{versionInfo?.docker?.local && (
+								<span>
+									<b>Docker: </b>
+									{versionInfo?.docker?.local}
+								</span>
+							)}
+							<span>
+								<b>Core:</b>{' '}
+								<a target='_blank' href={`https://github.com/pi-hole/FTL/releases/${versionInfo?.core.local.version}`}>
+									{versionInfo?.core.local.version}
+								</a>
+							</span>
+							<span>
+								<b>FTL:</b>{' '}
+								<a target='_blank' href={`https://github.com/pi-hole/FTL/releases/${versionInfo?.ftl.local.version}`}>
+									{versionInfo?.ftl.local.version}
+								</a>
+							</span>
 						</Layout.Footer>
 					</Content>
 				</Layout>

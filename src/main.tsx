@@ -4,9 +4,9 @@ import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import App from './App.tsx';
 
-import Graphics from './LongTermStats/Graphics/Graphics.tsx';
-import QueryLog from './LongTermStats/QueryLog/QueryLog.tsx';
-import TopLists from './LongTermStats/TopLists/TopLists.tsx';
+import Graphics from './LongTermData/Graphics/Graphics.tsx';
+import QueryLog from './LongTermData/QueryLog/QueryLog.tsx';
+import TopLists from './LongTermData/TopLists/TopLists.tsx';
 import Settings from './Settings/Settings.tsx';
 import Login from './Login/Login.tsx';
 import DashboardPage from './Dashboard/Dashboard.tsx';

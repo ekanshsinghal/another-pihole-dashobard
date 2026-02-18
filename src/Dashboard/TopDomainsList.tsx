@@ -84,7 +84,7 @@ function TopDomainsList({
 	return (
 		<div>
 			<Table dataSource={domains} columns={columns} pagination={false} size='small' />
-			<Modal title={infoDomain} open={Boolean(infoDomain)} onOk={closeModal}>
+			<Modal title={`Top Clients (${infoDomain})`} open={Boolean(infoDomain)} onOk={closeModal}>
 				<div style={{ maxHeight: 400, overflowY: 'auto', margin: '16px 0' }}>
 					{loadingInfo ? <Skeleton /> : <TopClientsList clients={clients} totalQueries={domainQueries} type={type} root={false} />}
 				</div>
