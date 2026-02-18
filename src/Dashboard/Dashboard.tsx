@@ -68,22 +68,22 @@ function DashboardPage() {
 		<div style={{ margin: 16 }}>
 			<Row gutter={[16, 16]}>
 				<Col xs={24} sm={12} lg={6}>
-					<Card>
+					<Card size='small'>
 						<Statistic title='Total Queries' value={stats?.queries?.total || 0} styles={{ content: { color: '#1677ff' } }} />
 					</Card>
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card>
+					<Card size='small'>
 						<Statistic title='Queries Blocked' value={stats?.queries?.blocked || 0} styles={{ content: { color: '#ff4d4f' } }} />
 					</Card>
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card>
+					<Card size='small'>
 						<Statistic title='Percent Blocked' value={blockPercentage} suffix='%' styles={{ content: { color: '#52c41a' } }} />
 					</Card>
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card>
+					<Card size='small'>
 						<Statistic
 							title='Domains on Lists'
 							value={stats?.gravity?.domains_being_blocked || 0}

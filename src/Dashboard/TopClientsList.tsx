@@ -123,7 +123,7 @@ function TopClientsList({
 	};
 
 	return (
-		<div style={{ maxHeight: 400, overflowY: 'auto' }}>
+		<div>
 			<Table dataSource={clients} columns={columns} pagination={false} size='small' />
 			<Modal title={infoClient?.name ?? infoClient?.ip} open={Boolean(infoClient)} onOk={closeModal} onCancel={closeModal}>
 				<div style={{ maxHeight: 400, overflowY: 'auto' }}>

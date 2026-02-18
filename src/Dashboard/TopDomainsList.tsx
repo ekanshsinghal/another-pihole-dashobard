@@ -82,10 +82,12 @@ function TopDomainsList({
 	}, [totalQueries, type, root]);
 
 	return (
-		<div style={{ maxHeight: 400, overflowY: 'auto' }}>
+		<div>
 			<Table dataSource={domains} columns={columns} pagination={false} size='small' />
 			<Modal title={infoDomain} open={Boolean(infoDomain)} onOk={closeModal}>
-				{loadingInfo ? <Skeleton /> : <TopClientsList clients={clients} totalQueries={domainQueries} type={type} root={false} />}
+				<div style={{ maxHeight: 400, overflowY: 'auto', margin: '16px 0' }}>
+					{loadingInfo ? <Skeleton /> : <TopClientsList clients={clients} totalQueries={domainQueries} type={type} root={false} />}
+				</div>
 			</Modal>
 		</div>
 	);

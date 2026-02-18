@@ -113,22 +113,24 @@ export default function QueryLog() {
 				key: 'time',
 				dataIndex: 'time',
 				title: 'Time',
+				width: 170,
 				render: (val: number) => format(new Date(val * 1000), 'yyyy-MM-dd HH:mm:ss'),
 			},
 			{
 				key: 'status',
 				dataIndex: 'status',
 				title: 'Status',
+				width: 65,
 				render: (value: string) => getIconByStatus(value),
 			},
-			{ key: 'type', dataIndex: 'type', title: 'Type' },
+			{ key: 'type', dataIndex: 'type', title: 'Type', width: 75 },
 			{ key: 'domain', dataIndex: 'domain', title: 'Domain' },
 			{ key: 'client', dataIndex: 'client', title: 'Client', render: (val) => val.name ?? val.ip },
 			{
 				key: 'reply',
 				dataIndex: 'reply',
 				title: 'Reply',
-				minWidth: 100,
+				width: 100,
 				render: (val) => {
 					const ms = val.time * 1000;
 					const µs = val.time * 1_000_000;
@@ -164,7 +166,7 @@ export default function QueryLog() {
 				params: {
 					from,
 					until,
-					start: page * length - 1,
+					start: (page - 1) * length,
 					length,
 					domain,
 					client_ip: selectedIp,

@@ -87,7 +87,7 @@ function App() {
 			<Layout style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
 				<Header
 					style={{
-						padding: '0 16px 0 0',
+						padding: '0 0 0 0',
 						height: 50,
 						backgroundColor: '#3c8dbc',
 						alignItems: 'center',
@@ -147,7 +147,7 @@ function App() {
 							],
 						}}
 					>
-						<Button type='primary'>
+						<Button type='text' style={{ borderRadius: 0, height: 50, width: 64, color: 'white' }}>
 							<MenuOutlined />
 						</Button>
 					</Dropdown>
