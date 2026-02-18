@@ -1,16 +1,16 @@
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import { Button, Card, Col, Form, notification, Row, Select, Statistic, Table, Tooltip, type TableColumnsType } from 'antd';
-import axios from 'axios';
+import { Button, Card, Col, Form, notification, Row, Select, Table, Tooltip, type TableColumnsType } from 'antd';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AiFillDatabase } from 'react-icons/ai';
 import { LuBan } from 'react-icons/lu';
 import { MdCloudDownload } from 'react-icons/md';
-
-import TimeRangePicker from '../../common/TimeRangePicker';
-import './QueryLog.css';
 import { IoMdRefresh } from 'react-icons/io';
 import { FaHourglassHalf, FaInfinity } from 'react-icons/fa6';
+
+import TimeRangePicker from '../../common/TimeRangePicker';
+import apiClient from '../../utils/axios';
+import './QueryLog.css';
 
 interface DataType {
 	timestamp: number;
@@ -29,18 +29,17 @@ interface Pagination {
 	page: number;
 	total: number;
 	totalPages: number;
-	blocked: number;
 }
 
 interface Suggestion {
-	clients: {
-		ip: string;
-		client_name: string;
-	}[];
-	domains: string[];
-	queryTypes: string[];
-	replyTypes: string[];
-	statusTypes: string[];
+	client_ip: string[];
+	client_name: string[];
+	dnssec: string[];
+	domain: string[];
+	reply: string[];
+	status: string[];
+	type: string[];
+	upstream: string[];
 }
 
 const getIconByStatus = (status: string): ReactNode => {
@@ -71,34 +70,40 @@ const getClassByStatus = (status: string): string => {
 	return ['FORWARDED', 'CACHE', 'RETRIED', 'IN_PROGRESS', 'CACHE_STALE'].includes(status) ? 'allowed' : 'blocked';
 };
 
-const filterOption = (input: string, option: any) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+const filterOption = (input: string, option?: { value: string; label: string }): boolean => {
+	if (!option) return false;
+	const optionText = option.label || option.value || '';
+	return optionText.toLowerCase().includes(input.toLowerCase());
+};
 
 export default function QueryLog() {
 	const [range, setRange] = useState<Date[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [data, setData] = useState<DataType[]>([]);
 	const [pagination, setPagination] = useState<Pagination>();
-	const [suggestions, setSuggestions] = useState<Suggestion>({ clients: [], domains: [], queryTypes: [], replyTypes: [], statusTypes: [] });
+	const [suggestions, setSuggestions] = useState<Suggestion>({
+		client_ip: [],
+		client_name: [],
+		dnssec: [],
+		domain: [],
+		type: [],
+		reply: [],
+		status: [],
+		upstream: [],
+	});
 	const [form] = Form.useForm();
 	const [api, contextHolder] = notification.useNotification();
 	const selectedIp = Form.useWatch('ip', form);
 	const selectedClientName = Form.useWatch('clientName', form);
 
-	const blockedPer = useMemo(() => {
-		if (pagination && pagination.blocked !== 0) {
-			return ((pagination.blocked * 100) / pagination.total).toFixed(1);
-		}
-		return '0';
-	}, [pagination]);
-
 	const [ipOptions, nameOptions, domainOptions, queryOptions, replyOptions, statusOptions] = useMemo(() => {
 		return [
-			suggestions.clients.map((i) => ({ value: i.ip, label: i.ip })),
-			suggestions.clients.filter((i) => i.client_name !== '').map((i) => ({ value: i.ip, label: i.client_name })),
-			suggestions.domains.map((i) => ({ value: i, label: i })),
-			suggestions.queryTypes.map((i) => ({ value: i, label: i })),
-			suggestions.replyTypes.map((i) => ({ value: i, label: i })),
-			suggestions.statusTypes.map((i) => ({ value: i, label: i })),
+			suggestions.client_ip.map((i) => ({ value: i, label: i })),
+			suggestions.client_name.map((i) => ({ value: i, label: i })),
+			suggestions.domain.map((i) => ({ value: i, label: i })),
+			suggestions.type.map((i) => ({ value: i, label: i })),
+			suggestions.reply.map((i) => ({ value: i, label: i })),
+			suggestions.status.map((i) => ({ value: i, label: i })),
 		];
 	}, [suggestions]);
 
@@ -106,7 +111,7 @@ export default function QueryLog() {
 		return [
 			{
 				key: 'time',
-				dataIndex: 'timestamp',
+				dataIndex: 'time',
 				title: 'Time',
 				render: (val: number) => format(new Date(val * 1000), 'yyyy-MM-dd HH:mm:ss'),
 			},
@@ -118,51 +123,67 @@ export default function QueryLog() {
 			},
 			{ key: 'type', dataIndex: 'type', title: 'Type' },
 			{ key: 'domain', dataIndex: 'domain', title: 'Domain' },
-			{ key: 'client', dataIndex: 'client', title: 'Client' },
+			{ key: 'client', dataIndex: 'client', title: 'Client', render: (val) => val.name ?? val.ip },
 			{
 				key: 'reply',
-				dataIndex: 'reply_time',
+				dataIndex: 'reply',
 				title: 'Reply',
 				minWidth: 100,
-				render: (val: number) => {
-					const ms = val * 1000;
-					const µs = val * 1_000_000;
-					if (val > 1) return `${val.toFixed(1)} s`;
+				render: (val) => {
+					const ms = val.time * 1000;
+					const µs = val.time * 1_000_000;
+					if (val.time > 1) return `${val.time.toFixed(1)} s`;
 					if (ms > 1) return `${ms.toFixed(1)} ms`;
 					if (µs > 1) return `${µs.toFixed(1)} µs`;
 				},
 			},
 		];
-	}, [suggestions]);
-
-	useEffect(() => {
-		fetchSuggestions();
 	}, []);
-
-	useEffect(() => {
-		if (range.length == 2) fetchData(1, 10);
-	}, [range]);
 
 	const fetchSuggestions = async () => {
 		try {
-			const { data }: { data: Suggestion } = await axios.get('/api/longTermStats/suggestions');
-			setSuggestions(data);
+			const resp = await apiClient.get('queries/suggestions');
+			setSuggestions(resp?.data?.suggestions);
 		} catch (error) {
 			api.error({ title: 'Unable to fetch suggestions!', description: `${error}` });
 		}
 	};
 
-	const fetchData = async (page = 1, limit = 10) => {
+	useEffect(() => {
+		fetchSuggestions();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const fetchData = async (page = 1, length = 10) => {
 		setLoading(true);
 		try {
-			const start: number = Math.floor(range[0].getTime() / 1000);
-			const end: number = Math.floor(range[1].getTime() / 1000);
+			const from: number = Math.floor(range[0].getTime() / 1000);
+			const until: number = Math.floor(range[1].getTime() / 1000);
 			const { domain, reply, query, status } = form.getFieldsValue();
-			const { data } = await axios.get('/api/longTermStats/queryLogs', {
-				params: { start, end, page, limit, domain, client: selectedIp || selectedClientName, reply, query, status },
+			const { data } = await apiClient.get('queries', {
+				params: {
+					from,
+					until,
+					start: page * length - 1,
+					length,
+					domain,
+					client_ip: selectedIp,
+					client_name: selectedClientName,
+					reply,
+					type: query,
+					status,
+					disk: true,
+				},
 			});
-			setData(data.data);
-			setPagination(data.pagination);
+			setData(data.queries);
+			setPagination({
+				page,
+				limit: length,
+				total: data.recordsFiltered,
+				totalPages: Math.ceil(data.recordsFiltered / length),
+				hasPrev: page > 1,
+				hasNext: page < Math.ceil(data.recordsFiltered / length),
+			});
 		} catch (error) {
 			api.error({ title: 'Unable to fetch records!', description: `${error}` });
 			console.error(error);
@@ -171,8 +192,13 @@ export default function QueryLog() {
 		}
 	};
 
+	useEffect(() => {
+		if (range.length == 2) fetchData(1, 10);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [range]);
+
 	return (
-		<div>
+		<div style={{ padding: 16 }}>
 			{contextHolder}
 			<div style={{ gap: 16, display: 'grid' }}>
 				<TimeRangePicker
@@ -258,31 +284,13 @@ export default function QueryLog() {
 						</Form>
 					}
 				/>
-
-				<Row gutter={[16, 16]} wrap>
-					<Col xl={8} lg={8} md={12} sm={24} xs={24}>
-						<Card variant='borderless'>
-							<Statistic title='Total Queries' value={pagination?.total} />
-						</Card>
-					</Col>
-					<Col xl={8} lg={8} md={12} sm={24} xs={24}>
-						<Card variant='borderless'>
-							<Statistic title='Queries Blocked' value={pagination?.blocked} />
-						</Card>
-					</Col>
-					<Col xl={8} lg={8} md={12} sm={24} xs={24}>
-						<Card variant='borderless'>
-							<Statistic title='Percentage Blocked' value={blockedPer} precision={1} suffix='%' />
-						</Card>
-					</Col>
-				</Row>
 				<Card title='Recent Queries' style={{ marginBottom: 16 }} size='small'>
 					<Table
 						size='small'
 						loading={loading}
 						dataSource={data}
 						columns={columns}
-						rowKey={'timestamp'}
+						rowKey='id'
 						rowClassName={(record: DataType) => getClassByStatus(record.status)}
 						pagination={{
 							pageSize: pagination?.limit,

@@ -1,15 +1,16 @@
 import { DotChartOutlined } from '@ant-design/icons';
 import { Card, notification, Skeleton } from 'antd';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
-import './Graphics.css';
 import TimeRangePicker from '../../common/TimeRangePicker';
+import apiClient from '../../utils/axios';
+import './Graphics.css';
 
 interface QueryRecord {
 	timestamp: number; // epoch ms
-	allowed: number;
+	total: number;
+	cached: number;
 	blocked: number;
 }
 
@@ -27,10 +28,10 @@ export default function Graphics() {
 	const fetchData = async () => {
 		try {
 			setLoading(true);
-			const start: number = Math.floor(range[0].getTime() / 1000);
-			const end: number = Math.floor(range[1].getTime() / 1000);
-			const resp = await axios.get('/api/longTermStats/graphics', { params: { start, end } });
-			setData(resp.data);
+			const from: number = Math.floor(range[0].getTime() / 1000);
+			const until: number = Math.floor(range[1].getTime() / 1000);
+			const resp = await apiClient.get('history/database', { params: { from, until } });
+			setData(resp.data.history);
 		} catch (error) {
 			api.error({ title: 'Unable to fetch records!', description: `${error}` });
 			console.error(error);
@@ -63,7 +64,7 @@ export default function Graphics() {
 								labelFormatter={(label) => new Date(label).toLocaleString()}
 							/>
 							<Bar dataKey='blocked' stackId='a' fill='#999999' name='Blocked' />
-							<Bar dataKey='allowed' stackId='a' fill='#00a65a' name='Allowed' />
+							<Bar dataKey='cached' stackId='a' fill='#00a65a' name='Allowed' />
 						</BarChart>
 					</ResponsiveContainer>
 				)}
