@@ -1,5 +1,14 @@
 # Another Pihole Dashboard
 
+## Key differences vs official dashboard
+1. Clicking on top domain shows stats for top clients querying that domain (Pic 2).
+2. CLicking on top client shows stats on top domain queryied by that client (Pic 3).
+
+<img width="1512" height="836" alt="Screenshot 2026-02-18 at 11 50 18 PM" src="https://github.com/user-attachments/assets/385ee67c-5609-43f4-84f7-bc8d03f1610b" />
+<img width="1512" height="836" alt="Screenshot 2026-02-18 at 11 50 59 PM" src="https://github.com/user-attachments/assets/5d62c3ac-0697-48c1-a270-5d1b75eba632" />
+<img width="1512" height="836" alt="Screenshot 2026-02-18 at 11 52 35 PM" src="https://github.com/user-attachments/assets/537dd325-e0d2-400f-875f-05ba0d735ea4" />
+
+
 ## Instructions to run and develop
 
 1. Rename `example.env` to `.env`.
