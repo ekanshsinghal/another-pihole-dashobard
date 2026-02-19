@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Card, Statistic, Row, Col, Spin, Typography } from 'antd';
+import { Card, Row, Col, Spin, Typography } from 'antd';
 
 import TopDomainsList from './TopDomainsList';
 import TopClientsList from './TopClientsList';
 import apiClient from '../utils/axios';
 import type { Client, Domain, Stats } from './types';
+import StatCard from '../common/StatCard';
 
 const { Text } = Typography;
 
@@ -62,34 +63,22 @@ function DashboardPage() {
 		);
 	}
 
-	const blockPercentage = stats?.queries?.total ? (((stats.queries.blocked || 0) / stats.queries.total) * 100).toFixed(1) : 0;
+	const blockPercentage = stats?.queries?.total ? (((stats.queries.blocked || 0) / stats.queries.total) * 100).toFixed(1) : '0';
 
 	return (
 		<div style={{ margin: 16 }}>
 			<Row gutter={[16, 16]}>
 				<Col xs={24} sm={12} lg={6}>
-					<Card size='small'>
-						<Statistic title='Total Queries' value={stats?.queries?.total || 0} styles={{ content: { color: '#1677ff' } }} />
-					</Card>
+					<StatCard label='Total Queries' value={stats?.queries?.total || 0} color='rgb(0, 188, 216)' />
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card size='small'>
-						<Statistic title='Queries Blocked' value={stats?.queries?.blocked || 0} styles={{ content: { color: '#ff4d4f' } }} />
-					</Card>
+					<StatCard label='Queries Blocked' value={stats?.queries?.blocked || 0} color='rgb(186, 33, 33)' />
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card size='small'>
-						<Statistic title='Percent Blocked' value={blockPercentage} suffix='%' styles={{ content: { color: '#52c41a' } }} />
-					</Card>
+					<StatCard label='Percent Blocked' value={parseFloat(blockPercentage)} color='#f39c12' />
 				</Col>
 				<Col xs={24} sm={12} lg={6}>
-					<Card size='small'>
-						<Statistic
-							title='Domains on Lists'
-							value={stats?.gravity?.domains_being_blocked || 0}
-							styles={{ content: { color: '#722ed1' } }}
-						/>
-					</Card>
+					<StatCard label='Domains on Lists' value={stats?.gravity?.domains_being_blocked || 0} color='rgb(20, 203, 91)' />
 				</Col>
 			</Row>
 

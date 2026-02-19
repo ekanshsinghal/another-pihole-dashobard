@@ -124,10 +124,14 @@ function TopClientsList({
 
 	return (
 		<div>
-			<Table dataSource={clients} columns={columns} pagination={false} size='small' />
+			<Table dataSource={clients} columns={columns} pagination={false} size='small' rowKey='ip' />
 			<Modal title={infoClient?.name ?? infoClient?.ip} open={Boolean(infoClient)} onOk={closeModal} onCancel={closeModal}>
 				<div style={{ maxHeight: 400, overflowY: 'auto' }}>
-					{loadingInfo ? <Skeleton /> : <Table dataSource={domainsPerClient} columns={perClientColumns} pagination={false} size='small' />}
+					{loadingInfo ? (
+						<Skeleton />
+					) : (
+						<Table dataSource={domainsPerClient} columns={perClientColumns} pagination={false} size='small' rowKey='domain' />
+					)}
 				</div>
 			</Modal>
 		</div>

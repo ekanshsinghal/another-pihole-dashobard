@@ -1,5 +1,5 @@
 import { HistoryOutlined, HomeFilled, MenuOutlined, SettingFilled } from '@ant-design/icons';
-import { Button, ConfigProvider, Dropdown, Layout, Menu, notification, Space, Spin, Switch, theme } from 'antd';
+import { Button, ConfigProvider, Dropdown, Layout, Menu, notification, Segmented, Space, Spin, theme } from 'antd';
 import { useEffect, useState } from 'react';
 import { AiOutlineBarChart } from 'react-icons/ai';
 import { FaListUl } from 'react-icons/fa6';
@@ -29,8 +29,10 @@ interface VersionResponse {
 	docker: { local: string; remote: string };
 }
 
+type ThemeMode = 'light' | 'dark' | 'system';
+
 function App() {
-	const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('system');
+	const [themeMode, setThemeMode] = useState<ThemeMode>((localStorage.getItem('themeMode') as ThemeMode) ?? 'system');
 	const [loading, setLoading] = useState<boolean>(true);
 	const [versionInfo, setVersionInfo] = useState<VersionResponse>();
 	const navigate = useNavigate();
@@ -58,6 +60,11 @@ function App() {
 		getLoginStatus();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	const updateThemeMode = (mode: string) => {
+		localStorage.setItem('themeMode', mode.toLocaleLowerCase());
+		setThemeMode(mode.toLocaleLowerCase() as ThemeMode);
+	};
 
 	const getAlgorithm = () => {
 		if (themeMode === 'system' && typeof window !== 'undefined') {
@@ -118,21 +125,7 @@ function App() {
 									label: (
 										<Space>
 											<span>Theme:</span>
-											<Switch
-												checkedChildren='Dark'
-												unCheckedChildren='Light'
-												checked={themeMode === 'dark'}
-												onChange={(checked) => setThemeMode(checked ? 'dark' : 'light')}
-											/>
-											<Button
-												onClick={() => setThemeMode('system')}
-												style={{
-													background: themeMode === 'system' ? '#1890ff' : 'transparent',
-													color: themeMode === 'system' ? 'white' : 'inherit',
-												}}
-											>
-												System
-											</Button>
+											<Segmented options={['Light', 'Dark', 'System']} onChange={updateThemeMode} />
 										</Space>
 									),
 								},

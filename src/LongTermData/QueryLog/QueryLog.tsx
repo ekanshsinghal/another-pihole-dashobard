@@ -11,6 +11,7 @@ import { FaHourglassHalf, FaInfinity } from 'react-icons/fa6';
 import TimeRangePicker from '../../common/TimeRangePicker';
 import apiClient from '../../utils/axios';
 import './QueryLog.css';
+// import type { SorterResult } from 'antd/es/table/interface';
 
 interface DataType {
 	timestamp: number;
@@ -91,6 +92,7 @@ export default function QueryLog() {
 		status: [],
 		upstream: [],
 	});
+	// const [sortState, setSortState] = useState<SorterResult<DataType>>();
 	const [form] = Form.useForm();
 	const [api, contextHolder] = notification.useNotification();
 	const selectedIp = Form.useWatch('ip', form);
@@ -114,6 +116,7 @@ export default function QueryLog() {
 				dataIndex: 'time',
 				title: 'Time',
 				width: 170,
+				// sorter: true,
 				render: (val: number) => format(new Date(val * 1000), 'yyyy-MM-dd HH:mm:ss'),
 			},
 			{
@@ -121,19 +124,22 @@ export default function QueryLog() {
 				dataIndex: 'status',
 				title: 'Status',
 				width: 65,
+				// sorter: true,
 				render: (value: string) => getIconByStatus(value),
 			},
 			{ key: 'type', dataIndex: 'type', title: 'Type', width: 75 },
-			{ key: 'domain', dataIndex: 'domain', title: 'Domain' },
+			{ key: 'domain', dataIndex: 'domain', title: 'Domain', render: (val) => <span style={{ wordBreak: 'break-word' }}>{val}</span> },
 			{ key: 'client', dataIndex: 'client', title: 'Client', render: (val) => val.name ?? val.ip },
 			{
 				key: 'reply',
 				dataIndex: 'reply',
 				title: 'Reply',
 				width: 100,
+				// sorter: true,
 				render: (val) => {
 					const ms = val.time * 1000;
 					const µs = val.time * 1_000_000;
+					if (val.time === 0) return `0`;
 					if (val.time > 1) return `${val.time.toFixed(1)} s`;
 					if (ms > 1) return `${ms.toFixed(1)} ms`;
 					if (µs > 1) return `${µs.toFixed(1)} µs`;
@@ -162,21 +168,20 @@ export default function QueryLog() {
 			const from: number = Math.floor(range[0].getTime() / 1000);
 			const until: number = Math.floor(range[1].getTime() / 1000);
 			const { domain, reply, query, status } = form.getFieldsValue();
-			const { data } = await apiClient.get('queries', {
-				params: {
-					from,
-					until,
-					start: (page - 1) * length,
-					length,
-					domain,
-					client_ip: selectedIp,
-					client_name: selectedClientName,
-					reply,
-					type: query,
-					status,
-					disk: true,
-				},
-			});
+			const params: { [key: string]: string | number | boolean | undefined | null } = {
+				from,
+				until,
+				start: (page - 1) * length,
+				length,
+				domain,
+				client_ip: selectedIp,
+				client_name: selectedClientName,
+				reply,
+				type: query,
+				status,
+				disk: true,
+			};
+			const { data } = await apiClient.get('queries', { params });
 			setData(data.queries);
 			setPagination({
 				page,
@@ -195,7 +200,7 @@ export default function QueryLog() {
 	};
 
 	useEffect(() => {
-		if (range.length == 2) fetchData(1, 10);
+		if (range.length == 2) fetchData(pagination?.page ?? 1, pagination?.limit ?? 10);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [range]);
 
@@ -294,10 +299,12 @@ export default function QueryLog() {
 						columns={columns}
 						rowKey='id'
 						rowClassName={(record: DataType) => getClassByStatus(record.status)}
+						// onChange={(p, f, sorter) => setSortState(Array.isArray(sorter) ? sorter[0] : sorter)}
 						pagination={{
 							pageSize: pagination?.limit,
 							current: pagination?.page,
 							total: pagination?.total,
+							showTotal: (total, range) => `${range[0].toLocaleString()} - ${range[1].toLocaleString()} of ${total.toLocaleString()} items`,
 							onChange: (page, pageSize) => fetchData(page, pageSize),
 						}}
 					/>
